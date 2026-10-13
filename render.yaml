@@ -1,0 +1,75 @@
+# Cloud resources are created only when you explicitly deploy this Blueprint.
+services:
+  - type: web
+    name: contextmesh
+    runtime: node
+    region: oregon
+    plan: starter
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    disk:
+      name: contextmesh-ledger
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: 24.5.0
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /var/data
+      - key: CONTEXTMESH_MODE
+        value: demo
+      - key: PUBLIC_URL
+        sync: false
+      - key: APP_ACCESS_TOKEN
+        generateValue: true
+      - key: WORKFLOW_CALLBACK_TOKEN
+        generateValue: true
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      - key: PAYPAL_MAYA_EMAIL
+        sync: false
+      - key: PAYPAL_ARJUN_EMAIL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.8-flash
+      - key: AI_PROVIDER
+        value: auto
+      - key: HYDRADB_URL
+        sync: false
+      - key: HYDRADB_TOKEN
+        sync: false
+      - key: RENDER_API_KEY
+        sync: false
+      - key: RENDER_TASK_SLUG
+        sync: false
+      - key: WORKFLOW_CALLBACK_URL
+        sync: false
+      - key: VITE_AG_STUDIO_LICENSE_KEY
+        sync: false
+  - type: workflow
+    name: contextmesh-workflows
+    runtime: node
+    region: oregon
+    buildCommand: npm ci --include=dev
+    startCommand: npm run workflows
+    envVars:
+      - key: NODE_VERSION
+        value: 24.5.0
+      - key: WORKFLOW_CALLBACK_URL
+        sync: false
+      - key: WORKFLOW_CALLBACK_TOKEN
+        fromService:
+          type: web
+          name: contextmesh
+          envVarKey: WORKFLOW_CALLBACK_TOKEN
